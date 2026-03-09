@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZipMedia — iPhone Media Compressor</title>
+    <meta name="description"
+        content="Compress iPhone photos and videos by date, 100% in the browser. No uploads, no server, complete privacy.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <!-- Background blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <header class="fade-0">
+            <div class="logo">
+                <span class="logo-dot"></span>
+                ZipMedia
+            </div>
+            <div class="badge">DATE FILTER · PRIVATE</div>
+        </header>
+
+        <!-- HERO -->
+        <section class="hero fade-1">
+            <h1>Compress by<br><span class="accent">Date &amp; Time</span></h1>
+            <p>Select a date range, scan your iPhone folder, and compress only the media that matters.
+                Everything runs in your browser — no uploads, no cloud, complete privacy.</p>
+        </section>
+
+        <!-- TAB SWITCHER -->
+        <div class="tabs fade-2" role="tablist">
+            <button class="tab-btn active" id="tab-photo" role="tab" aria-selected="true"
+                onclick="switchTab('photo')">📸 Photos</button>
+            <button class="tab-btn" id="tab-video" role="tab" aria-selected="false" onclick="switchTab('video')">🎬
+                Videos</button>
+            <button class="tab-btn" id="tab-both" role="tab" aria-selected="false" onclick="switchTab('both')">✨
+                Both</button>
+        </div>
+
+        <!-- DATE FILTER CARD -->
+        <div class="section-card fade-2">
+            <div class="section-label">Date Filter</div>
+
+            <!-- Mode toggle -->
+            <div class="mode-row">
+                <button class="mode-btn active" id="mode-single" onclick="setMode('single')">Single Day</button>
+                <button class="mode-btn" id="mode-range" onclick="setMode('range')">Date Range</button>
+                <button class="mode-btn" id="mode-month" onclick="setMode('month')">Full Month</button>
+            </div>
+
+            <!-- Quick presets -->
+            <div class="presets-row">
+                <button class="preset-btn" onclick="setPreset('today')">Today</button>
+                <button class="preset-btn" onclick="setPreset('yesterday')">Yesterday</button>
+                <button class="preset-btn" onclick="setPreset('last7')">Last 7 days</button>
+                <button class="preset-btn" onclick="setPreset('last30')">Last 30 days</button>
+                <button class="preset-btn" onclick="setPreset('thismonth')">This month</button>
+            </div>
+
+            <!-- Date inputs -->
+            <div class="date-row">
+                <div class="input-group" id="ig-single">
+                    <label for="dateFrom">Date</label>
+                    <input type="date" id="dateFrom" onchange="onDateChange()">
+                </div>
+                <div class="input-group" id="ig-range-from" style="display:none;">
+                    <label for="dateRangeFrom">From</label>
+                    <input type="date" id="dateRangeFrom" onchange="onDateChange()">
+                </div>
+                <div class="input-group" id="ig-range-to" style="display:none;">
+                    <label for="dateRangeTo">To</label>
+                    <input type="date" id="dateRangeTo" onchange="onDateChange()">
+                </div>
+                <div class="input-group" id="ig-month" style="display:none;">
+                    <label for="dateMonth">Month</label>
+                    <input type="month" id="dateMonth" onchange="onDateChange()">
+                </div>
+
+                <button class="scan-btn" id="scanBtn" onclick="triggerScan()" disabled>
+                    Scan Folder →
+                </button>
+            </div>
+
+            <!-- Scanning progress -->
+            <div id="scanProgress">
+                <div class="scan-bar-track">
+                    <div class="scan-bar-fill"></div>
+                </div>
+                <div class="scan-status" id="scanStatus">Scanning files…</div>
+            </div>
+
+            <!-- Result pill -->
+            <div id="dateResult">
+                <div class="result-left">
+                    <div class="result-count" id="resultCount">0 files found</div>
+                    <div class="result-detail" id="resultDetail"></div>
+                </div>
+                <button class="rescan-btn" onclick="triggerScan()">Re-scan</button>
+            </div>
+        </div>
+
+        <!-- COMPRESSION SETTINGS CARD -->
+        <div class="section-card fade-3">
+            <div class="section-label">Compression Settings</div>
+
+            <!-- Photo settings -->
+            <div id="photoSettings">
+                <div class="setting-row">
+                    <span class="setting-label">Photo Quality</span>
+                    <input type="range" id="photoQuality" min="0.1" max="1" step="0.05" value="0.6"
+                        oninput="updateLabel('photoQuality','photoQualityVal', v => Math.round(v*100)+'%')">
+                    <span class="setting-val" id="photoQualityVal">60%</span>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">Max Photo Width</span>
+                    <select id="maxWidth">
+                        <option value="0">Original</option>
+                        <option value="2048" selected>2048 px</option>
+                        <option value="1280">1280 px</option>
+                        <option value="800">800 px</option>
+                    </select>
+                </div>
+                <div id="formatNote">✓ Format preserved — output keeps the same file type as the original (JPG → JPG,
+                    PNG → PNG, etc.)</div>
+            </div>
+
+            <!-- Video settings -->
+            <div id="videoSettings" style="display:none;">
+                <div class="setting-row">
+                    <span class="setting-label">Video Quality</span>
+                    <input type="range" id="videoQuality" min="0.1" max="1" step="0.05" value="0.5"
+                        oninput="updateLabel('videoQuality','videoQualityVal', v => Math.round(v*100)+'%')">
+                    <span class="setting-val" id="videoQualityVal">50%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS BAR -->
+        <div class="stats-bar fade-3">
+            <div class="stat-card">
+                <div class="stat-val" id="statFiles">0</div>
+                <div class="stat-lbl">Files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="statSize">—</div>
+                <div class="stat-lbl">Original Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="statSaved">—</div>
+                <div class="stat-lbl">Saved</div>
+            </div>
+        </div>
+
+        <!-- FILE LIST / EMPTY STATE -->
+        <div id="emptyState" class="fade-4">
+            <div class="empty-icon">📂</div>
+            <p>Select a date above, then click<br><strong>Scan Folder →</strong> to load your iPhone media files.</p>
+        </div>
+        <div id="fileList" class="fade-4"></div>
+
+        <!-- COMPRESS BUTTON -->
+        <button class="compress-btn" id="compressBtn" onclick="compressAll()" disabled>
+            Compress Filtered Files
+        </button>
+
+        <!-- DOWNLOAD SECTION -->
+        <div id="downloadSection">
+            <h3>✓ Compression Complete</h3>
+            <div class="dl-list" id="dlList"></div>
+            <button class="dl-all-btn" id="dlAllBtn" onclick="downloadAll()" style="display:none;">⬇ Download All
+                Files</button>
+            <button class="clear-btn" onclick="clearAll()">Clear &amp; Start Over</button>
+        </div>
+
+    </div><!-- /container -->
+
+    <!-- Hidden folder picker -->
+    <input type="file" id="folderInput" webkitdirectory mozdirectory multiple style="display:none;"
+        onchange="handleFolder(this.files)">
+
+    <!-- JS modules (order matters — dependencies first) -->
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/filter.js"></script>
+    <script src="js/compress.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>
