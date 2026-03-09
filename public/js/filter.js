@@ -1,7 +1,6 @@
-// filter.js — Date Range filter (optional; scanning always works)
+// filter.js — uses getFileDate() for accurate date filtering
 
 // ─── DATE RANGE ───────────────────────────────────────────────────────────────
-// Returns { from, to } if both fields are filled, otherwise null (= no filter).
 function getRange() {
     const vf = document.getElementById('dateRangeFrom').value;
     const vt = document.getElementById('dateRangeTo').value;
@@ -13,7 +12,6 @@ function getRange() {
 }
 
 // ─── PRESETS ──────────────────────────────────────────────────────────────────
-// Fills From and To inputs; Today/Yesterday set both to the same day.
 function setPreset(key) {
     const now = new Date();
     const today = isoDate(now);
@@ -33,11 +31,10 @@ function setPreset(key) {
         from.value = isoDate(addDays(now, -29)); to.value = today;
     }
 
-    // Re-filter if already scanned
     if (allScanned.length > 0) applyFilter();
 }
 
-// setMode stub — kept so nothing throws if called indirectly
+// setMode stub
 function setMode(m) { dateMode = m; }
 
 // ─── TAB SWITCH ───────────────────────────────────────────────────────────────
@@ -54,14 +51,14 @@ function switchTab(t) {
 }
 
 // ─── ON DATE CHANGE ───────────────────────────────────────────────────────────
-// Date is optional — changing it re-filters already-scanned files if present.
 function onDateChange() {
     if (allScanned.length > 0) applyFilter();
 }
 
 // ─── FILTER ───────────────────────────────────────────────────────────────────
-// If no date range is set → show ALL scanned files.
-// If a range is set → filter to that window.
+// Uses getFileDate(f) — parses date from filename first, falls back to lastModified.
+// This correctly handles Android files (IMG_20240309_143022.jpg) even when
+// lastModified reflects the PC transfer date rather than the capture date.
 function applyFilter() {
     if (allScanned.length === 0) return;
 
@@ -69,11 +66,11 @@ function applyFilter() {
 
     let filtered;
     if (!range) {
-        // No date filter — show everything
+        // No date set → show everything
         filtered = allScanned;
     } else {
         filtered = allScanned.filter(f => {
-            const d = new Date(f.lastModified);
+            const d = new Date(getFileDate(f));
             return d >= range.from && d <= range.to;
         });
     }
