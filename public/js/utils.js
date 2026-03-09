@@ -66,3 +66,46 @@ function escHtml(s) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
 }
+
+// ─── FILE DATE DETECTION ──────────────────────────────────────────────────────
+// Phones embed the capture date in the filename. Parsing it gives accurate
+// results even when lastModified reflects the PC transfer date (not capture date).
+//
+// Patterns handled:
+//   Android/Samsung  IMG_20240309_143022.jpg    VID_20240309_143022.mp4
+//   Screenshot       Screenshot_20240309-143022.jpg
+//   WhatsApp         IMG-20240309-WA0001.jpg    VID-20240309-WA0001.mp4
+//   General          20240309_143022.jpg         2024-03-09 14.30.jpg
+//   iPhone fallback  IMG_0001.HEIC              → uses lastModified
+//
+// Returns a millisecond timestamp (same type as file.lastModified).
+function getFileDate(file) {
+    const name = file.name;
+
+    // Match YYYYMMDD or YYYY-MM-DD or YYYY_MM_DD anywhere in the filename
+    const m = name.match(/(\d{4})[-_]?(\d{2})[-_]?(\d{2})/);
+    if (m) {
+        const y = parseInt(m[1], 10);
+        const mo = parseInt(m[2], 10);
+        const d = parseInt(m[3], 10);
+
+        // Sanity-check: plausible year (2000-2035), valid month and day
+        if (y >= 2000 && y <= 2035 && mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
+            // Also parse time if present right after the date block
+            const rest = name.slice(m.index + m[0].length);
+            const timeM = rest.match(/[-_T ]?(\d{2})[-_:.]?(\d{2})[-_:.]?(\d{2})/);
+            if (timeM) {
+                return new Date(
+                    y, mo - 1, d,
+                    parseInt(timeM[1], 10),
+                    parseInt(timeM[2], 10),
+                    parseInt(timeM[3], 10)
+                ).getTime();
+            }
+            return new Date(y, mo - 1, d).getTime();
+        }
+    }
+
+    // Fallback: filesystem modification date
+    return file.lastModified;
+}
