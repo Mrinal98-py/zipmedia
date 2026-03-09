@@ -24,12 +24,16 @@ function renderAll() {
         const isImg = isImage(f);
         const rawBadge = isRaw(f) ? '<span class="raw-badge">RAW</span>' : '';
 
+        const detectedTs = getFileDate(f);
+        const detectedDate = fmtDate(detectedTs);
+        const dateSource = detectedTs !== f.lastModified ? '📅 ' : '🕒 ';
+
         item.innerHTML = `
       <div class="file-top">
         <div class="file-thumb" id="${thumbId}">${isImg ? '' : '🎬'}</div>
         <div class="file-info">
           <div class="file-name" title="${escHtml(f.name)}">${escHtml(f.name)} ${rawBadge}</div>
-          <div class="file-meta">${formatSize(f.size)} · ${fmtDate(f.lastModified)}</div>
+          <div class="file-meta">${formatSize(f.size)} · ${dateSource}${detectedDate}</div>
         </div>
         <div class="file-actions">
           <button class="remove-btn" onclick="removeFile(${idx})" title="Remove">✕</button>
@@ -38,6 +42,7 @@ function renderAll() {
       <div class="file-progress-wrap"><div class="file-progress" id="prog-${idx}"></div></div>
       <div class="file-result" id="res-${idx}"></div>
     `;
+
         list.appendChild(item);
 
         if (isImg && !isRaw(f)) {
