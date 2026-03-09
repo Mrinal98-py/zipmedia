@@ -1,6 +1,7 @@
-// filter.js — Date Range only (Single Day and Full Month removed)
+// filter.js — Date Range filter (optional; scanning always works)
 
 // ─── DATE RANGE ───────────────────────────────────────────────────────────────
+// Returns { from, to } if both fields are filled, otherwise null (= no filter).
 function getRange() {
     const vf = document.getElementById('dateRangeFrom').value;
     const vt = document.getElementById('dateRangeTo').value;
@@ -11,10 +12,8 @@ function getRange() {
     };
 }
 
-function hasDate() { return getRange() !== null; }
-
-// ─── PRESETS ─────────────────────────────────────────────────────────────────
-// All presets now fill the From/To range inputs directly.
+// ─── PRESETS ──────────────────────────────────────────────────────────────────
+// Fills From and To inputs; Today/Yesterday set both to the same day.
 function setPreset(key) {
     const now = new Date();
     const today = isoDate(now);
@@ -34,10 +33,11 @@ function setPreset(key) {
         from.value = isoDate(addDays(now, -29)); to.value = today;
     }
 
-    onDateChange();
+    // Re-filter if already scanned
+    if (allScanned.length > 0) applyFilter();
 }
 
-// ─── setMode (stub — kept so no ReferenceError if anything calls it) ─────────
+// setMode stub — kept so nothing throws if called indirectly
 function setMode(m) { dateMode = m; }
 
 // ─── TAB SWITCH ───────────────────────────────────────────────────────────────
@@ -53,28 +53,34 @@ function switchTab(t) {
     applyFilter();
 }
 
-// ─── ON DATE INPUT CHANGE ─────────────────────────────────────────────────────
+// ─── ON DATE CHANGE ───────────────────────────────────────────────────────────
+// Date is optional — changing it re-filters already-scanned files if present.
 function onDateChange() {
-    document.getElementById('scanBtn').disabled = !hasDate();
     if (allScanned.length > 0) applyFilter();
 }
 
 // ─── FILTER ───────────────────────────────────────────────────────────────────
+// If no date range is set → show ALL scanned files.
+// If a range is set → filter to that window.
 function applyFilter() {
+    if (allScanned.length === 0) return;
+
     const range = getRange();
-    if (!range || allScanned.length === 0) {
-        if (allScanned.length === 0) return;
-        files = filterByTab(allScanned);
-        renderAll();
-        return;
+
+    let filtered;
+    if (!range) {
+        // No date filter — show everything
+        filtered = allScanned;
+    } else {
+        filtered = allScanned.filter(f => {
+            const d = new Date(f.lastModified);
+            return d >= range.from && d <= range.to;
+        });
     }
-    const byDate = allScanned.filter(f => {
-        const d = new Date(f.lastModified);
-        return d >= range.from && d <= range.to;
-    });
-    files = filterByTab(byDate);
+
+    files = filterByTab(filtered);
     renderAll();
-    showDateResult();
+    showDateResult(range);
 }
 
 function filterByTab(arr) {
@@ -84,15 +90,19 @@ function filterByTab(arr) {
 }
 
 // ─── DATE RESULT PILL ─────────────────────────────────────────────────────────
-function showDateResult() {
+function showDateResult(range) {
     const photos = files.filter(isImage).length;
     const videos = files.filter(isVideo).length;
     const totalBytes = files.reduce((s, f) => s + f.size, 0);
+
     document.getElementById('resultCount').textContent =
-        files.length + ' file' + (files.length === 1 ? '' : 's') + ' found';
+        files.length + ' file' + (files.length === 1 ? '' : 's') + ' found'
+        + (range ? '' : ' (all dates)');
+
     document.getElementById('resultDetail').textContent =
         photos + ' photo' + (photos === 1 ? '' : 's')
         + ' · ' + videos + ' video' + (videos === 1 ? '' : 's')
         + ' · ' + formatSize(totalBytes) + ' total';
+
     document.getElementById('dateResult').style.display = 'flex';
 }

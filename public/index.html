@@ -48,7 +48,8 @@
 
         <!-- DATE FILTER CARD -->
         <div class="section-card fade-2">
-            <div class="section-label">Date Filter</div>
+            <div class="section-label">Date Filter <span style="opacity:.5;font-size:9px;">(optional — leave blank to
+                    scan all)</span></div>
 
 
             <div class="presets-row">
@@ -75,7 +76,7 @@
                     <label for="dateMonth">Month</label>
                     <input type="month" id="dateMonth" onchange="onDateChange()">
                 </div>
-                <button class="scan-btn" id="scanBtn" onclick="triggerScan()" disabled>Scan Folder →</button>
+                <button class="scan-btn" id="scanBtn" onclick="triggerScan()">Scan Folder →</button>
             </div>
 
             <div id="scanProgress">

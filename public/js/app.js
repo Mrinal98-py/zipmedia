@@ -1,4 +1,4 @@
-// app.js — folder scan, compress loop, clear, init
+// ─── FOLDER SCAN ─────────────────────────────────────────────────────────────
 
 function triggerScan() {
     const inp = document.getElementById('folderInput');
@@ -74,8 +74,8 @@ function clearAll() {
     document.getElementById('downloadSection').style.display = 'none';
     document.getElementById('dateResult').style.display = 'none';
     document.getElementById('compressBtn').disabled = true;
+    // Clear date inputs too
+    document.getElementById('dateRangeFrom').value = '';
+    document.getElementById('dateRangeTo').value = '';
     updateStats();
 }
-
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-(function init() { setPreset('today'); })();
