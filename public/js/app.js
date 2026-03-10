@@ -6,6 +6,48 @@ function triggerScan() {
     inp.click();
 }
 
+// ─── MANUAL FILE PICK ─────────────────────────────────────────────────────────
+// Opens a file picker that accepts any media format individually.
+// Newly picked files are merged into allScanned (deduplicated by name).
+
+function triggerPick() {
+    const inp = document.getElementById('fileInput');
+    inp.value = '';
+    inp.click();
+}
+
+function handlePick(fileList) {
+    if (!fileList || fileList.length === 0) return;
+
+    // Collect valid media files from the selection
+    const incoming = [];
+    for (let i = 0; i < fileList.length; i++) {
+        if (isMedia(fileList[i])) incoming.push(fileList[i]);
+    }
+
+    if (incoming.length === 0) return;
+
+    // Merge with existing allScanned, skip duplicates by filename
+    const existingNames = new Set(allScanned.map(f => f.name));
+    incoming.forEach(f => {
+        if (!existingNames.has(f.name)) allScanned.push(f);
+    });
+
+    // Show progress briefly
+    const scanProg = document.getElementById('scanProgress');
+    const scanStatus = document.getElementById('scanStatus');
+    scanProg.style.display = 'block';
+    scanStatus.textContent = 'Added ' + incoming.length + ' file' + (incoming.length === 1 ? '' : 's')
+        + ' · ' + allScanned.length + ' total';
+
+    setTimeout(() => {
+        scanProg.style.display = 'none';
+        applyFilter();
+    }, 800);
+}
+
+
+
 function handleFolder(fileList) {
     const scanProg = document.getElementById('scanProgress');
     const scanStatus = document.getElementById('scanStatus');

@@ -16,6 +16,8 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'"],
+            // Allow inline onclick/onchange/oninput HTML attributes
+            scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: ["'self'", 'https://fonts.googleapis.com', "'unsafe-inline'"],
             fontSrc: ["'self'", 'https://fonts.gstatic.com'],
             imgSrc: ["'self'", 'data:', 'blob:'],
@@ -26,8 +28,9 @@ app.use(helmet({
             frameSrc: ["'none'"],
         },
     },
-    crossOriginEmbedderPolicy: false, // required for SharedArrayBuffer / blob: URLs
+    crossOriginEmbedderPolicy: false, // required for blob: canvas/video URLs
 }));
+
 
 // ─── GZIP COMPRESSION ─────────────────────────────────────────────────────────
 app.use(compression());

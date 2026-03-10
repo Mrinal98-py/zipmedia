@@ -1,5 +1,3 @@
-// ─── FILE LIST RENDERING ──────────────────────────────────────────────────────
-
 function renderAll() {
     const list = document.getElementById('fileList');
     const empty = document.getElementById('emptyState');
@@ -44,21 +42,24 @@ function renderAll() {
 
         list.appendChild(item);
 
-        // Async thumbnail for images
-        if (isImg) {
+        const ext = f.name.split('.').pop().toLowerCase();
+        const canPreview = isImg && ext !== 'heic' && ext !== 'heif';
+
+        if (canPreview) {
             const reader = new FileReader();
             reader.onload = e => {
                 const th = document.getElementById(thumbId);
                 if (th) th.innerHTML = `<img src="${e.target.result}" alt="${escHtml(f.name)}">`;
             };
             reader.readAsDataURL(f);
+        } else if (isImg) {
+            const th = document.getElementById(thumbId);
+            if (th) th.textContent = ext === 'heic' || ext === 'heif' ? 'HEIC' : 'IMG';
         }
     });
 
     updateStats();
 }
-
-// ─── REMOVE A FILE ────────────────────────────────────────────────────────────
 
 function removeFile(idx) {
     files.splice(idx, 1);
@@ -66,16 +67,12 @@ function removeFile(idx) {
     if (allScanned.length > 0) showDateResult();
 }
 
-// ─── STATS BAR ────────────────────────────────────────────────────────────────
-
 function updateStats(savedBytes) {
     document.getElementById('statFiles').textContent = files.length;
     const total = files.reduce((s, f) => s + f.size, 0);
     document.getElementById('statSize').textContent = files.length ? formatSize(total) : '—';
     document.getElementById('statSaved').textContent = savedBytes != null ? formatSize(savedBytes) : '—';
 }
-
-// ─── PER-FILE PROGRESS ────────────────────────────────────────────────────────
 
 function setProgress(idx, pct) {
     const el = document.getElementById('prog-' + idx);
@@ -96,8 +93,6 @@ function markError(idx, msg) {
     const res = document.getElementById('res-' + idx);
     if (res) { res.classList.add('err'); res.textContent = '⚠ ' + msg; }
 }
-
-// ─── DOWNLOAD SECTION ─────────────────────────────────────────────────────────
 
 function showDownloads() {
     if (results.length === 0) return;

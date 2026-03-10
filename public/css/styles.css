@@ -399,6 +399,28 @@ input[type="month"]:focus {
     transform: none;
 }
 
+/* ─── SCAN / PICK BUTTON ROW ─── */
+.scan-btns {
+    display: flex;
+    gap: 8px;
+    align-self: flex-end;
+    flex-shrink: 0;
+}
+
+/* Outlined "Pick Files" variant */
+.pick-btn {
+    background: transparent;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+}
+
+.pick-btn:hover {
+    background: rgba(127, 255, 110, .10);
+    opacity: 1;
+}
+
+
+
 /* ─── SCAN PROGRESS ─── */
 #scanProgress {
     display: none;

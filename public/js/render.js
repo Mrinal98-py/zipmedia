@@ -1,5 +1,3 @@
-// render.js — DOM rendering: file list, stats, progress, downloads
-
 function renderAll() {
     const list = document.getElementById('fileList');
     const empty = document.getElementById('emptyState');
@@ -45,13 +43,19 @@ function renderAll() {
 
         list.appendChild(item);
 
-        if (isImg && !isRaw(f)) {
+        const ext = fileExt(f);
+        const canPreview = isImg && !isRaw(f) && ext !== 'heic' && ext !== 'heif';
+
+        if (canPreview) {
             const reader = new FileReader();
             reader.onload = e => {
                 const th = document.getElementById(thumbId);
                 if (th) th.innerHTML = `<img src="${e.target.result}" alt="${escHtml(f.name)}">`;
             };
             reader.readAsDataURL(f);
+        } else if (isImg) {
+            const th = document.getElementById(thumbId);
+            if (th) th.textContent = ext === 'heic' || ext === 'heif' ? 'HEIC' : 'IMG';
         }
     });
 
