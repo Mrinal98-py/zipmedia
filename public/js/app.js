@@ -90,11 +90,14 @@ async function compressAll() {
             const res = isImage(f)
                 ? await compressImage(f, photoQuality, maxW, idx)
                 : await compressVideo(f, videoQuality, idx);
+            const outFile = typeof File === 'function'
+                ? new File([res.blob], res.name, { type: res.blob.type || 'application/octet-stream' })
+                : res.blob;
 
             setProgress(idx, 100);
-            markDone(idx, f.size, res.blob.size);
-            totalSaved += Math.max(0, f.size - res.blob.size);
-            results.push({ name: res.name, blob: res.blob, origSize: f.size });
+            markDone(idx, f.size, outFile.size);
+            totalSaved += Math.max(0, f.size - outFile.size);
+            results.push({ name: res.name, blob: outFile, origSize: f.size });
 
         } catch (err) {
             markError(idx, err.message || 'Compression failed');

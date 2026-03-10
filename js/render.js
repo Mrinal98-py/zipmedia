@@ -110,10 +110,16 @@ function normalizeDownloadName(name, blob) {
 
 function triggerBlobDownload(blob, name) {
     const fileName = normalizeDownloadName(name, blob);
-    const downloadBlob = typeof File === 'function'
-        ? new File([blob], fileName, { type: blob.type || 'application/octet-stream' })
+    const fileToSave = typeof File === 'function'
+        ? new File([blob], fileName, { type: blob?.type || 'application/octet-stream' })
         : blob;
-    const url = URL.createObjectURL(downloadBlob);
+
+    if (typeof saveAs === 'function') {
+        saveAs(fileToSave, fileName);
+        return;
+    }
+
+    const url = URL.createObjectURL(fileToSave);
     const a = document.createElement('a');
     a.href = url;
     a.download = fileName;
