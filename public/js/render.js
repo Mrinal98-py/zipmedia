@@ -94,6 +94,35 @@ function markError(idx, msg) {
     if (res) { res.classList.add('err'); res.textContent = '⚠ ' + msg; }
 }
 
+function normalizeDownloadName(name, blob) {
+    const trimmed = (name || '').trim();
+    if (/\.[^.\s]+$/.test(trimmed)) return trimmed;
+
+    const extByMime = {
+        'image/jpeg': '.jpg',
+        'image/png': '.png',
+        'image/webp': '.webp',
+        'video/webm': '.webm',
+    };
+    const ext = extByMime[blob?.type] || '.bin';
+    return (trimmed || 'download') + ext;
+}
+
+function triggerBlobDownload(blob, name) {
+    const fileName = normalizeDownloadName(name, blob);
+    const downloadBlob = typeof File === 'function'
+        ? new File([blob], fileName, { type: blob.type || 'application/octet-stream' })
+        : blob;
+    const url = URL.createObjectURL(downloadBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function showDownloads() {
     if (results.length === 0) return;
     const section = document.getElementById('downloadSection');
@@ -101,15 +130,16 @@ function showDownloads() {
     const dlAll = document.getElementById('dlAllBtn');
     dlList.innerHTML = '';
 
-    results.forEach(r => {
-        const url = URL.createObjectURL(r.blob);
+    results.forEach((r, idx) => {
         const item = document.createElement('div');
         item.className = 'dl-item';
         item.innerHTML = `
-      <span class="dl-name">${escHtml(r.name)}</span>
+      <span class="dl-name">${escHtml(normalizeDownloadName(r.name, r.blob))}</span>
       <span class="dl-size">${formatSize(r.blob.size)}</span>
-      <a class="dl-btn" href="${url}" download="${escHtml(r.name)}">Download</a>
+      <button class="dl-btn" type="button" data-download-idx="${idx}">Download</button>
     `;
+        const btn = item.querySelector('[data-download-idx]');
+        btn.addEventListener('click', () => triggerBlobDownload(r.blob, r.name));
         dlList.appendChild(item);
     });
 
@@ -120,11 +150,6 @@ function showDownloads() {
 
 function downloadAll() {
     results.forEach(r => {
-        const url = URL.createObjectURL(r.blob);
-        const a = Object.assign(document.createElement('a'), { href: url, download: r.name });
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        triggerBlobDownload(r.blob, r.name);
     });
 }
